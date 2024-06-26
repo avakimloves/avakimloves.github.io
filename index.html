@@ -18,8 +18,34 @@
 
     <script>
         function selectGame(game) {
-            Telegram.WebApp.sendData(game);  // Отправка данных обратно в бота
+            const userId = Telegram.WebApp.initDataUnsafe.user.id;
+            const userFullName = Telegram.WebApp.initDataUnsafe.user.first_name + ' ' + Telegram.WebApp.initDataUnsafe.user.last_name;
+
+            console.log(`Отправка запроса для игры: ${game}`);
+            fetch("http://localhost:8000/webhook", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    game: game,
+                    user_id: userId,
+                    user_full_name: userFullName
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Ответ сервера: ${JSON.stringify(data)}`);
+                Telegram.WebApp.close();  // Закрыть WebApp после выбора игры
+            })
+            .catch(error => {
+                console.error('Ошибка при отправке запроса:', error);
+            });
         }
+
+        window.Telegram.WebApp.onEvent('main_button_pressed', function() {
+            Telegram.WebApp.showPopup('Нажмите на одну из кнопок, чтобы выбрать игру!');
+        });
     </script>
 </body>
 </html>
